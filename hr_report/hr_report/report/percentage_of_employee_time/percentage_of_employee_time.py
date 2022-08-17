@@ -46,7 +46,7 @@ def execute(filters=None):
         },
     ]
     data = []
-    filters_t = None
+    filters_t = {'status': 'Active'}
     if filters.employee:
         filters_t = {'name': filters.employee}
 
