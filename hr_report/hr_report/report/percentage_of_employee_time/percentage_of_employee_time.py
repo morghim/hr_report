@@ -51,12 +51,24 @@ def execute(filters=None):
         filters_t = {'name': filters.employee}
 
     employees = frappe.db.get_list(
-        "Employee", fields=['name', 'default_shift', 'employee_name'], filters=filters_t)
+        "Employee", fields=['name', 'default_shift', 'employee_name', 'holiday_list'], filters=filters_t)
     for i in employees:
-        sh = get_shift_time(i.default_shift)
-        employee_data = get_employee_checkin_by_shift(
-            i.name, sh, filters.month, i)
-        data.append(employee_data)
+        if i.default_shift and i.holiday_list:
+            sh = get_shift_time(i.default_shift)
+            employee_data = get_employee_checkin_by_shift(
+                i.name, sh, filters.month, i)
+            data.append(employee_data)
+        else:
+            data.append({
+                {
+            "employee": i.name,
+            "employee_name": i.employee_name,
+            "full_time": 0,
+            "employee_time": 0,
+            "precentage_time": 0}
+
+            })
+
     return columns, data
 
 
@@ -107,9 +119,9 @@ def get_employee_checkin_by_shift(employee_name, shift_details, month, employee)
         data = {
             "employee": employee.name,
             "employee_name": employee.employee_name,
-            "full_time": None,
-            "employee_time": None,
-            "precentage_time": None}
+            "full_time": 0,
+            "employee_time": 0,
+            "precentage_time": 0}
         return data
     
 def process_data_used_shift(data, shift_details):
