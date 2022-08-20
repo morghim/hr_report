@@ -59,15 +59,15 @@ def execute(filters=None):
                 i.name, sh, filters.month, i)
             data.append(employee_data)
         else:
-            data.append({
+            data.append(
                 {
-            "employee": i.name,
-            "employee_name": i.employee_name,
-            "full_time": 0,
-            "employee_time": 0,
-            "precentage_time": 0}
+                    "employee": i.name,
+                    "employee_name": i.employee_name,
+                    "full_time": 0,
+                    "employee_time": 0,
+                    "precentage_time": 0}
 
-            })
+            )
 
     return columns, data
 
@@ -123,16 +123,17 @@ def get_employee_checkin_by_shift(employee_name, shift_details, month, employee)
             "employee_time": 0,
             "precentage_time": 0}
         return data
-    
+
+
 def process_data_used_shift(data, shift_details):
 
     new_data = data
     start_hour, start_minute = get_hours_from_shift(shift_details, 1)
     end_hour, end_minute = get_hours_from_shift(shift_details, 2)
     if not start_hour:
-        return 
+        return
     if not start_minute:
-        return 
+        return
     for k in new_data:
         start_time = new_data[k]['in'].replace(
             hour=start_hour, minute=start_minute)
@@ -150,6 +151,7 @@ def get_hours_from_shift(shift_details, key):
         return shift_details[0][key].seconds//3600, (shift_details[0][key].seconds//60) % 60
     except:
         return None, None
+
 
 def calculate_employee_time(data, with_holidays=True, employee=None):
     total_hours = 0
