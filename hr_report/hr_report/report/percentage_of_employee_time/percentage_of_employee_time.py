@@ -157,7 +157,7 @@ def calculate_employee_time(data, with_holidays=True, employee=None):
         hour_per_day = data[k]['out'] - data[k]['in']
         minute = (hour_per_day.total_seconds()//60) % 60
         if hour_per_day.total_seconds() // 3600 > 0:
-            if not is_holiday(employee.holiday_list, hour_per_day.date()):
+            if not is_holiday(employee.holiday_list, data[k]['out'].date()):
                 total_hours = total_hours + hour_per_day.total_seconds() // 3600
                 if minute:
                     total_hours = total_hours + minute / 60
