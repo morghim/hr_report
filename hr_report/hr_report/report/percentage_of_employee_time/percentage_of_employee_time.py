@@ -53,7 +53,6 @@ def execute(filters=None):
     employees = frappe.db.get_list(
         "Employee", fields=['name', 'default_shift', 'employee_name'], filters=filters_t)
     for i in employees:
-
         sh = get_shift_time(i.default_shift)
         employee_data = get_employee_checkin_by_shift(
             i.name, sh, filters.month, i)
@@ -95,21 +94,33 @@ def get_employee_checkin_by_shift(employee_name, shift_details, month, employee)
                 'out': i.time
             }
     d = process_data_used_shift(emloyee_data, shift_details)
-    c = calculate_employee_time(d)
-    data = {
-        "employee": employee.name,
-        "employee_name": employee.employee_name,
-        "full_time": shift_details[0][0],
-        "employee_time": c,
-        "precentage_time": (c/shift_details[0][0]) * 100}
-    return data
-
-
+    if d:
+        c = calculate_employee_time(d, True, employee)
+        data = {
+            "employee": employee.name,
+            "employee_name": employee.employee_name,
+            "full_time": shift_details[0][0],
+            "employee_time": c,
+            "precentage_time": (c/shift_details[0][0]) * 100}
+        return data
+    else:
+        data = {
+            "employee": employee.name,
+            "employee_name": employee.employee_name,
+            "full_time": None,
+            "employee_time": None,
+            "precentage_time": None}
+        return data
+    
 def process_data_used_shift(data, shift_details):
 
     new_data = data
     start_hour, start_minute = get_hours_from_shift(shift_details, 1)
     end_hour, end_minute = get_hours_from_shift(shift_details, 2)
+    if not start_hour:
+        return 
+    if not start_minute:
+        return 
     for k in new_data:
         start_time = new_data[k]['in'].replace(
             hour=start_hour, minute=start_minute)
@@ -123,19 +134,21 @@ def process_data_used_shift(data, shift_details):
 
 
 def get_hours_from_shift(shift_details, key):
-    return shift_details[0][key].seconds//3600, (shift_details[0][key].seconds//60) % 60
+    try:
+        return shift_details[0][key].seconds//3600, (shift_details[0][key].seconds//60) % 60
+    except:
+        return None, None
 
-
-def calculate_employee_time(data, with_holidays=True):
+def calculate_employee_time(data, with_holidays=True, employee=None):
     total_hours = 0
     for k in data:
         hour_per_day = data[k]['out'] - data[k]['in']
         minute = (hour_per_day.total_seconds()//60) % 60
         if hour_per_day.total_seconds() // 3600 > 0:
-
-            total_hours = total_hours + hour_per_day.total_seconds() // 3600
-            if minute:
-                total_hours = total_hours + minute / 60
+            if not is_holiday(employee.holiday_list, hour_per_day.date()):
+                total_hours = total_hours + hour_per_day.total_seconds() // 3600
+                if minute:
+                    total_hours = total_hours + minute / 60
     return total_hours
 
 
