@@ -74,7 +74,7 @@ def execute(filters=None):
 
 def get_shift_time(shif_type):
     return frappe.db.sql("""
-	select working_hour_per_month, start_time, end_time from `tabShift Type` where name = '%s'
+	select working_hour_per_month, start_time, end_time, working_hours_per_day from `tabShift Type` where name = '%s'
 	""" % (shif_type))
 
 
@@ -107,7 +107,7 @@ def get_employee_checkin_by_shift(employee_name, shift_details, month, employee)
             }
     d = process_data_used_shift(emloyee_data, shift_details)
     if d:
-        c = calculate_employee_time(d, True, employee)
+        c = calculate_employee_time(d, True, employee, shift_details)
         data = {
             "employee": employee.name,
             "employee_name": employee.employee_name,
@@ -153,16 +153,20 @@ def get_hours_from_shift(shift_details, key):
         return None, None
 
 
-def calculate_employee_time(data, with_holidays=True, employee=None):
+def calculate_employee_time(data, with_holidays=True, employee=None, shift_data=None):
     total_hours = 0
-    for k in data:
+    for k, v in data:
         hour_per_day = data[k]['out'] - data[k]['in']
         minute = (hour_per_day.total_seconds()//60) % 60
         if hour_per_day.total_seconds() // 3600 > 0:
-            if not is_holiday(employee.holiday_list, data[k]['out'].date()):
-                total_hours = total_hours + hour_per_day.total_seconds() // 3600
-                if minute:
-                    total_hours = total_hours + minute / 60
+            if not is_holiday(employee.holiday_list, v):
+                tot_h = hour_per_day.total_seconds() // 3600
+                if tot_h < shift_data[0][3]:
+                    total_hours = total_hours + hour_per_day.total_seconds() // 3600
+                    if minute:
+                        total_hours = total_hours + minute / 60
+                else:
+                    total_hours = total_hours + shift_data[0][3]
     return total_hours
 
 
