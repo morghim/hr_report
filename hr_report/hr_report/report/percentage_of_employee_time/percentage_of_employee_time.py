@@ -155,11 +155,11 @@ def get_hours_from_shift(shift_details, key):
 
 def calculate_employee_time(data, with_holidays=True, employee=None, shift_data=None):
     total_hours = 0
-    for k, v in data:
+    for k in data:
         hour_per_day = data[k]['out'] - data[k]['in']
         minute = (hour_per_day.total_seconds()//60) % 60
         if hour_per_day.total_seconds() // 3600 > 0:
-            if not is_holiday(employee.holiday_list, v):
+            if not is_holiday(employee.holiday_list, data[k]['out'].date()):
                 tot_h = hour_per_day.total_seconds() // 3600
                 if tot_h < shift_data[0][3]:
                     total_hours = total_hours + hour_per_day.total_seconds() // 3600
