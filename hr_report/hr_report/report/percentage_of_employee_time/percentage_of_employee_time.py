@@ -85,8 +85,9 @@ def get_employee_checkin_by_shift(employee_name, shift_details, month, employee)
     i = monthrange(d.year, month_map[month])
     start_date = d.replace(month=month_map[month]).replace(day=1)
     end_date = start_date.replace(day=i[1])
-    employee_check_in = frappe.db.get_all('Employee Checkin', filters={'employee': employee_name, 'time': [
-                                          '>=', start_date], 'time': ['<=', end_date]}, fields=['name', 'time'], order_by='time')
+    print(start_date, end_date)
+    employee_check_in = frappe.db.get_list('Employee Checkin', filters={'employee': employee_name, 'time': [
+                                          'between', (start_date.date(), end_date.date())]}, fields=['name', 'time'], order_by='time')
     for i in employee_check_in:
         if i.time.date() in emloyee_data:
             if 'in' in emloyee_data[i.time.date()]:
@@ -107,13 +108,13 @@ def get_employee_checkin_by_shift(employee_name, shift_details, month, employee)
             }
     d = process_data_used_shift(emloyee_data, shift_details)
     if d:
-        c = calculate_employee_time(d, True, employee, shift_details)
+        c, y = calculate_employee_time(d, True, employee, shift_details)
         data = {
             "employee": employee.name,
             "employee_name": employee.employee_name,
-            "full_time": shift_details[0][0],
+            "full_time": y,
             "employee_time": c,
-            "precentage_time": (c/shift_details[0][0]) * 100}
+            "precentage_time": (c/y) * 100}
         return data
     else:
         data = {
@@ -155,17 +156,22 @@ def get_hours_from_shift(shift_details, key):
 
 def calculate_employee_time(data, with_holidays=True, employee=None, shift_data=None):
     total_hours = 0
+    employee_hours = 0
     for k in data:
         hour_per_day = data[k]['out'] - data[k]['in']
         minute = (hour_per_day.total_seconds()//60) % 60
         if hour_per_day.total_seconds() // 3600 > 0:
             if not is_holiday(employee.holiday_list, data[k]['out'].date()):
                 tot_h = hour_per_day.total_seconds() // 3600
-                if tot_h < shift_data[0][3]:
+                employee_hours = employee_hours + shift_data[0][3]
+                if tot_h <= shift_data[0][3]:
                     total_hours = total_hours + tot_h
+                    if not tot_h == shift_data[0][3]:
+                        if minute:
+                            total_hours = total_hours + (minute / 60)
                 else:
                     total_hours = total_hours + shift_data[0][3]
-    return total_hours
+    return total_hours, employee_hours
 
 
 month_map = {
