@@ -163,8 +163,6 @@ def calculate_employee_time(data, with_holidays=True, employee=None, shift_data=
                 tot_h = hour_per_day.total_seconds() // 3600
                 if tot_h < shift_data[0][3]:
                     total_hours = total_hours + hour_per_day.total_seconds() // 3600
-                    if minute:
-                        total_hours = total_hours + minute / 60
                 else:
                     total_hours = total_hours + shift_data[0][3]
     return total_hours
