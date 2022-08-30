@@ -114,7 +114,7 @@ def get_employee_checkin_by_shift(employee_name, shift_details, month, employee)
         data = {
             "employee": employee.name,
             "employee_name": employee.employee_name,
-            "full_time": y,
+            "full_time": shift_details[0][0],
             "employee_time": c,
             "precentage_time": percent}
         return data
