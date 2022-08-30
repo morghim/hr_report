@@ -114,8 +114,8 @@ def get_employee_checkin_by_shift(employee_name, shift_details, month, employee,
 
             
         percent = 0
-        if (c != 0):
-            percent = (full_time/c) * 100
+        if (c != 0) and (full_time != 0):
+            percent = (c/full_time) * 100
         data = {
             "employee": employee.name,
             "employee_name": employee.employee_name,
