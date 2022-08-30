@@ -22,9 +22,17 @@ frappe.query_reports["Percentage of employee time"] = {
 	
 			"default": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov",
 	
-				"Dec"][frappe.datetime.str_to_obj(frappe.datetime.get_today()).getMonth()],
+				"Dec"][frappe.datetime.str_to_obj(frappe.datetime.get_today()).getMonth()
+				
+		],
 	
 		},
+		{
+            fieldname: 'is_calc_spesfic_hour',
+            label: __('Calc Real Hours'),
+            fieldtype: 'Check',
+        },
+
 
 
 	]

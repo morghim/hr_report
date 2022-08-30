@@ -56,7 +56,7 @@ def execute(filters=None):
         if i.default_shift and i.holiday_list:
             sh = get_shift_time(i.default_shift)
             employee_data = get_employee_checkin_by_shift(
-                i.name, sh, filters.month, i)
+                i.name, sh, filters.month, i, filters.is_calc_spesfic_hour)
             data.append(employee_data)
         else:
             data.append(
@@ -78,13 +78,13 @@ def get_shift_time(shif_type):
 	""" % (shif_type))
 
 
-def get_employee_checkin_by_shift(employee_name, shift_details, month, employee):
+def get_employee_checkin_by_shift(employee_name, shift_details, month, employee, is_calc_real=False):
     emloyee_data = {}
 
     d = datetime.now()
-    i = monthrange(d.year, month_map[month])
+    h = monthrange(d.year, month_map[month])
     start_date = d.replace(month=month_map[month]).replace(day=1)
-    end_date = start_date.replace(day=i[1])
+    end_date = start_date.replace(day=h[1])
     employee_check_in = frappe.db.get_list('Employee Checkin', filters={'employee': employee_name, 'time': [
                                           'between', (start_date.date(), end_date.date())]}, fields=['name', 'time'], order_by='time')
     for i in employee_check_in:
@@ -108,13 +108,18 @@ def get_employee_checkin_by_shift(employee_name, shift_details, month, employee)
     d = process_data_used_shift(emloyee_data, shift_details)
     if d:
         c, y = calculate_employee_time(d, True, employee, shift_details)
+        full_time = shift_details[0][0]
+        if is_calc_real:
+            full_time = calculate_real_hours(start_date, end_date, shift_details[0][3], employee.holiday_list)
+
+            
         percent = 0
-        if (y != 0) and (c != 0):
-            percent = (c/y) * 100
+        if (c != 0):
+            percent = (full_time/c) * 100
         data = {
             "employee": employee.name,
             "employee_name": employee.employee_name,
-            "full_time": shift_details[0][0],
+            "full_time": full_time,
             "employee_time": c,
             "precentage_time": percent}
         return data
@@ -172,6 +177,23 @@ def calculate_employee_time(data, with_holidays=True, employee=None, shift_data=
                     total_hours = total_hours + shift_data[0][3]
     return total_hours, employee_hours
 
+def calculate_real_hours(start_date, end_date, day_work_hours, holiday_list):
+    total_hours = 0
+    days = date_range(start_date, end_date)
+    for i in days:
+        if not is_holiday(holiday_list, i):
+            total_hours = total_hours + day_work_hours
+    return total_hours
+
+
+
+
+
+
+def date_range(start, end):
+    delta = end - start  # as timedelta
+    days = [start + timedelta(days=i) for i in range(delta.days + 1)]
+    return days
 
 month_map = {
     "Jan": 1,
