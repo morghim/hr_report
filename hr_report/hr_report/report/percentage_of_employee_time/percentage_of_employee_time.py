@@ -85,7 +85,6 @@ def get_employee_checkin_by_shift(employee_name, shift_details, month, employee)
     i = monthrange(d.year, month_map[month])
     start_date = d.replace(month=month_map[month]).replace(day=1)
     end_date = start_date.replace(day=i[1])
-    print(start_date, end_date)
     employee_check_in = frappe.db.get_list('Employee Checkin', filters={'employee': employee_name, 'time': [
                                           'between', (start_date.date(), end_date.date())]}, fields=['name', 'time'], order_by='time')
     for i in employee_check_in:
@@ -109,12 +108,15 @@ def get_employee_checkin_by_shift(employee_name, shift_details, month, employee)
     d = process_data_used_shift(emloyee_data, shift_details)
     if d:
         c, y = calculate_employee_time(d, True, employee, shift_details)
+        percent = 0
+        if (y != 0) and (c != 0):
+            percent = (c/y) * 100
         data = {
             "employee": employee.name,
             "employee_name": employee.employee_name,
             "full_time": y,
             "employee_time": c,
-            "precentage_time": (c/y) * 100}
+            "precentage_time": percent}
         return data
     else:
         data = {
@@ -137,8 +139,8 @@ def process_data_used_shift(data, shift_details):
         return
     for k in new_data:
         start_time = new_data[k]['in'].replace(
-            hour=start_hour, minute=start_minute)
-        end_time = new_data[k]['out'].replace(hour=end_hour, minute=end_minute)
+            hour=start_hour, minute=start_minute, second=0)
+        end_time = new_data[k]['out'].replace(hour=end_hour, minute=end_minute, second=0)
         if new_data[k]['in'] < start_time:
 
             new_data[k]['in'] = start_time
@@ -162,13 +164,10 @@ def calculate_employee_time(data, with_holidays=True, employee=None, shift_data=
         minute = (hour_per_day.total_seconds()//60) % 60
         if hour_per_day.total_seconds() // 3600 > 0:
             if not is_holiday(employee.holiday_list, data[k]['out'].date()):
-                tot_h = hour_per_day.total_seconds() // 3600
+                tot_h = hour_per_day.total_seconds() / 3600
                 employee_hours = employee_hours + shift_data[0][3]
                 if tot_h <= shift_data[0][3]:
                     total_hours = total_hours + tot_h
-                    if not tot_h == shift_data[0][3]:
-                        if minute:
-                            total_hours = total_hours + (minute / 60)
                 else:
                     total_hours = total_hours + shift_data[0][3]
     return total_hours, employee_hours
