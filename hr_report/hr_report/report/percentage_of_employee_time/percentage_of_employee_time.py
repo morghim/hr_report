@@ -56,7 +56,7 @@ def execute(filters=None):
         if i.default_shift and i.holiday_list:
             sh = get_shift_time(i.default_shift)
             employee_data = get_employee_checkin_by_shift(
-                i.name, sh, filters.month, i, filters.is_calc_spesfic_hour)
+                i.name, sh, filters.start_date, filters.end_date, i, filters.is_calc_spesfic_hour)
             data.append(employee_data)
         else:
             data.append(
@@ -78,13 +78,13 @@ def get_shift_time(shif_type):
 	""" % (shif_type))
 
 
-def get_employee_checkin_by_shift(employee_name, shift_details, month, employee, is_calc_real=False):
+def get_employee_checkin_by_shift(employee_name, shift_details, start_date, end_date, employee, is_calc_real=False):
     emloyee_data = {}
 
     d = datetime.now()
-    h = monthrange(d.year, month_map[month])
-    start_date = d.replace(month=month_map[month]).replace(day=1)
-    end_date = start_date.replace(day=h[1])
+    # h = monthrange(d.year, month_map[month])
+    start_date = start_date
+    end_date = end_date
     employee_check_in = frappe.db.get_list('Employee Checkin', filters={'employee': employee_name, 'time': [
                                           'between', (start_date.date(), end_date.date())]}, fields=['name', 'time'], order_by='time')
     for i in employee_check_in:
