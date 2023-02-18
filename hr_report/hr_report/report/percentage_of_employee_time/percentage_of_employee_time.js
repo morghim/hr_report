@@ -13,14 +13,14 @@ frappe.query_reports["Percentage of employee time"] = {
 		{
 			fieldname: 'from_date',
             label: __('From Date'),
-            fieldtype: 'Date',
+            fieldtype: 'Datetime',
 			reqd: 1
 
 		},
 		{
 			fieldname: 'to_date',
             label: __('To Date'),
-            fieldtype: 'Date',
+            fieldtype: 'Datetime',
 			reqd: 1
 
 		},
