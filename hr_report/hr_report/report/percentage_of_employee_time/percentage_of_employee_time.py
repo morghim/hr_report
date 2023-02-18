@@ -56,7 +56,7 @@ def execute(filters=None):
         if i.default_shift and i.holiday_list:
             sh = get_shift_time(i.default_shift)
             employee_data = get_employee_checkin_by_shift(
-                i.name, sh, filters.start_date, filters.end_date, i, filters.is_calc_spesfic_hour)
+                i.name, sh, filters.from_date, filters.to_date, i, filters.is_calc_spesfic_hour)
             data.append(employee_data)
         else:
             data.append(
